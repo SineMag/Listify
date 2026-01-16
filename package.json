@@ -1,5 +1,5 @@
 {
-  "name": "listify",
+  "name": "Listify",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
@@ -17,6 +17,9 @@
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
     "@supabase/supabase-js": "^2.90.1",
+    "@reduxjs/toolkit": "^1.8.0",
+    "react-redux": "^7.2.6",
+    "@react-native-async-storage/async-storage": "^1.15.0",
     "expo": "~54.0.31",
     "expo-constants": "~18.0.13",
     "expo-font": "~14.0.10",
