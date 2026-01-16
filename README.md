@@ -1,7 +1,7 @@
 # Listify - Shopping List App
 
 ## Overview
-This is a React Native shopping list application that allows users to manage their shopping lists effectively. Users can add, edit, and delete items, and the app uses Redux for state management.
+This is a React Native shopping list application written in TypeScript that allows users to manage their shopping lists effectively. Users can add, edit, and delete items, and the app uses Redux for state management.
 
 ## Features
 - User-friendly interface for managing shopping lists.
