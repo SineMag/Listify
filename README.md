@@ -1,7 +1,5 @@
 <img src="https://socialify.git.ci/SineMag/Listify/image?language=1&owner=1&name=1&stargazers=1&theme=Light" alt="Listify" width="640" height="320" />
 
-<img src="https://socialify.git.ci/SineMag/Listify/image?language=1&owner=1&name=1&stargazers=1&theme=Light" alt="Listify" width="640" height="320" />
-
 # Listify: Your Smart Shopping List App 🛒
 
 Welcome to Listify, a smart shopping list application built with React Native and Expo. This app helps you manage your groceries and other shopping needs efficiently, powered by Redux for state management and Supabase for seamless data persistence.
