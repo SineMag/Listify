@@ -19,6 +19,8 @@ interface InputProps extends TextInputProps {
   onChangeText?: (text: string) => void;
   style?: ViewStyle;
   inputStyle?: TextStyle;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 export const Input: React.FC<InputProps> = ({
@@ -75,6 +77,8 @@ export const Input: React.FC<InputProps> = ({
         onChangeText={onChangeText}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
+        accessibilityLabel={textInputProps.accessibilityLabel || label || accessibilityLabel}
+        accessibilityHint={textInputProps.accessibilityHint || accessibilityHint}
         {...textInputProps}
       />
       {error && <Text style={getErrorStyle()}>{error}</Text>}

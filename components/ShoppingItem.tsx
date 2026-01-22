@@ -39,6 +39,10 @@ export const ShoppingItem: React.FC<ShoppingItemProps> = ({
         <TouchableOpacity
           style={styles.checkboxContainer}
           onPress={() => onTogglePurchased(item.id)}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: item.purchased }}
+          accessibilityLabel={item.purchased ? `${item.name} purchased` : `${item.name} not purchased`}
+          accessibilityHint="Double tap to toggle purchased status"
         >
           <View
             style={[styles.checkbox, item.purchased && styles.checkboxChecked]}
@@ -47,7 +51,7 @@ export const ShoppingItem: React.FC<ShoppingItemProps> = ({
           </View>
         </TouchableOpacity>
 
-        <View style={styles.itemInfo}>
+        <View style={styles.itemInfo} accessibilityLabel={`${item.name}, quantity ${item.quantity}`}>
           <Text style={[styles.itemName, getTextStyle()]}>{item.name}</Text>
           <Text style={[styles.itemQuantity, getTextStyle()]}>
             Quantity: {item.quantity}
@@ -61,6 +65,8 @@ export const ShoppingItem: React.FC<ShoppingItemProps> = ({
             variant="outline"
             size="small"
             style={styles.actionButton}
+            accessibilityLabel={`Edit ${item.name}`}
+            accessibilityHint="Opens edit form for this item"
           />
           <Button
             title="Delete"
@@ -68,6 +74,8 @@ export const ShoppingItem: React.FC<ShoppingItemProps> = ({
             variant="outline"
             size="small"
             style={styles.actionButton}
+            accessibilityLabel={`Delete ${item.name}`}
+            accessibilityHint="Deletes this item from the shopping list"
           />
         </View>
       </View>

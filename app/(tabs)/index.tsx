@@ -1,5 +1,6 @@
 import { AddItemForm } from "@/components/AddItemForm";
 import { ShoppingItem } from "@/components/ShoppingItem";
+import { Toast } from "@/components/Toast";
 import { Button, Card } from "@/components/ui";
 import { Colors, Spacing, Typography } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -9,12 +10,20 @@ import {
   editItem,
   setError,
   setItems,
+  setLoading,
   togglePurchased,
 } from "@/redux/shoppingListActions";
 import { RootState } from "@/redux/store";
+import {
+  addShoppingItem,
+  deleteShoppingItem,
+  fetchShoppingItems,
+  togglePurchasedStatus,
+  updateShoppingItem,
+} from "@/supabase/shoppingListService";
 import { ShoppingItem as ShoppingItemType } from "@/types/shopping";
 import React, { useEffect, useState } from "react";
-import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
 export default function HomeScreen() {
@@ -27,6 +36,11 @@ export default function HomeScreen() {
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingItem, setEditingItem] = useState<ShoppingItemType | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error" | "info";
+    visible: boolean;
+  }>({ message: "", type: "info", visible: false });
 
   useEffect(() => {
     loadItems();
@@ -34,46 +48,47 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (error) {
-      Alert.alert("Error", error);
+      showToast(error, "error");
       dispatch(setError(null));
     }
   }, [error, dispatch]);
 
-  const loadItems = () => {
+  const showToast = (message: string, type: "success" | "error" | "info" = "info") => {
+    setToast({ message, type, visible: true });
+  };
+
+  const hideToast = () => {
+    setToast((prev) => ({ ...prev, visible: false }));
+  };
+
+  const loadItems = async () => {
     try {
-      const savedItems = localStorage.getItem("shoppingList");
-      if (savedItems) {
-        const parsedItems = JSON.parse(savedItems);
-        dispatch(setItems(parsedItems));
-      }
-    } catch (err) {
-      dispatch(setError("Failed to load shopping list"));
+      dispatch(setLoading(true));
+      const fetchedItems = await fetchShoppingItems();
+      dispatch(setItems(fetchedItems));
+    } catch (err: any) {
+      const errorMessage = err.message || "Failed to load shopping list";
+      dispatch(setError(errorMessage));
+      showToast(errorMessage, "error");
+    } finally {
+      dispatch(setLoading(false));
     }
   };
 
-  const saveItems = (itemsToSave: ShoppingItemType[]) => {
+  const handleAddItem = async (name: string, quantity: number) => {
     try {
-      localStorage.setItem("shoppingList", JSON.stringify(itemsToSave));
-    } catch (err) {
-      dispatch(setError("Failed to save shopping list"));
+      dispatch(setLoading(true));
+      const newItem = await addShoppingItem(name, quantity);
+      dispatch(addItem(name, quantity));
+      setShowAddForm(false);
+      showToast("Item added successfully!", "success");
+    } catch (err: any) {
+      const errorMessage = err.message || "Failed to add item";
+      dispatch(setError(errorMessage));
+      showToast(errorMessage, "error");
+    } finally {
+      dispatch(setLoading(false));
     }
-  };
-
-  const handleAddItem = (name: string, quantity: number) => {
-    dispatch(addItem(name, quantity));
-    setShowAddForm(false);
-
-    const updatedItems = [
-      ...items,
-      {
-        id: Date.now().toString(),
-        name,
-        quantity,
-        purchased: false,
-        createdAt: new Date().toISOString(),
-      },
-    ];
-    saveItems(updatedItems);
   };
 
   const handleEditItem = (item: ShoppingItemType) => {
@@ -81,17 +96,22 @@ export default function HomeScreen() {
     setShowAddForm(true);
   };
 
-  const handleUpdateItem = (name: string, quantity: number) => {
+  const handleUpdateItem = async (name: string, quantity: number) => {
     if (editingItem) {
-      dispatch(editItem(editingItem.id, { name, quantity }));
-
-      const updatedItems = items.map((item) =>
-        item.id === editingItem.id ? { ...item, name, quantity } : item,
-      );
-      saveItems(updatedItems);
-
-      setEditingItem(null);
-      setShowAddForm(false);
+      try {
+        dispatch(setLoading(true));
+        await updateShoppingItem(editingItem.id, { name, quantity });
+        dispatch(editItem(editingItem.id, { name, quantity }));
+        setEditingItem(null);
+        setShowAddForm(false);
+        showToast("Item updated successfully!", "success");
+      } catch (err: any) {
+        const errorMessage = err.message || "Failed to update item";
+        dispatch(setError(errorMessage));
+        showToast(errorMessage, "error");
+      } finally {
+        dispatch(setLoading(false));
+      }
     }
   };
 
@@ -101,21 +121,41 @@ export default function HomeScreen() {
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => {
-          dispatch(deleteItem(id));
-          const updatedItems = items.filter((item) => item.id !== id);
-          saveItems(updatedItems);
+        onPress: async () => {
+          try {
+            dispatch(setLoading(true));
+            await deleteShoppingItem(id);
+            dispatch(deleteItem(id));
+            showToast("Item deleted successfully!", "success");
+          } catch (err: any) {
+            const errorMessage = err.message || "Failed to delete item";
+            dispatch(setError(errorMessage));
+            showToast(errorMessage, "error");
+          } finally {
+            dispatch(setLoading(false));
+          }
         },
       },
     ]);
   };
 
-  const handleTogglePurchased = (id: string) => {
-    dispatch(togglePurchased(id));
-    const updatedItems = items.map((item) =>
-      item.id === id ? { ...item, purchased: !item.purchased } : item,
-    );
-    saveItems(updatedItems);
+  const handleTogglePurchased = async (id: string) => {
+    try {
+      const item = items.find((i) => i.id === id);
+      if (!item) return;
+
+      const newPurchasedStatus = !item.purchased;
+      await togglePurchasedStatus(id, newPurchasedStatus);
+      dispatch(togglePurchased(id));
+      showToast(
+        newPurchasedStatus ? "Item marked as purchased!" : "Item unmarked!",
+        "success"
+      );
+    } catch (err: any) {
+      const errorMessage = err.message || "Failed to update item status";
+      dispatch(setError(errorMessage));
+      showToast(errorMessage, "error");
+    }
   };
 
   const renderItem = ({ item }: { item: ShoppingItemType }) => (
@@ -153,6 +193,12 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        visible={toast.visible}
+        onHide={hideToast}
+      />
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>
           My Shopping List
@@ -167,22 +213,34 @@ export default function HomeScreen() {
         onPress={() => setShowAddForm(true)}
         variant="primary"
         style={styles.addButton}
+        disabled={loading}
+        accessibilityLabel="Add new item to shopping list"
+        accessibilityHint="Opens a form to add a new item to your shopping list"
       />
 
-      <FlatList
-        data={items}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        style={styles.list}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <Card style={styles.emptyCard}>
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              Your shopping list is empty. Add some items to get started!
-            </Text>
-          </Card>
-        }
-      />
+      {loading && items.length === 0 ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+            Loading your shopping list...
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={items}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          style={styles.list}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <Card style={styles.emptyCard}>
+              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                Your shopping list is empty. Add some items to get started!
+              </Text>
+            </Card>
+          }
+        />
+      )}
     </View>
   );
 }
@@ -219,5 +277,15 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: Typography.body.fontSize,
     textAlign: "center",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: Spacing.xl,
+  },
+  loadingText: {
+    marginTop: Spacing.md,
+    fontSize: Typography.body.fontSize,
   },
 });

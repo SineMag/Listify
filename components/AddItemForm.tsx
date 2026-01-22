@@ -62,6 +62,8 @@ export const AddItemForm: React.FC<AddItemFormProps> = ({
         value={name}
         onChangeText={setName}
         error={errors.name}
+        accessibilityLabel="Item name input"
+        accessibilityHint="Enter the name of the item you want to add to your shopping list"
       />
 
       <Input
@@ -71,6 +73,8 @@ export const AddItemForm: React.FC<AddItemFormProps> = ({
         onChangeText={setQuantity}
         keyboardType="numeric"
         error={errors.quantity}
+        accessibilityLabel="Quantity input"
+        accessibilityHint="Enter the quantity of items you want to add"
       />
 
       <View style={styles.buttonContainer}>

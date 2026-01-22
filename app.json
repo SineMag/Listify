@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Listify_",
-    "slug": "Listify_",
+    "name": "Listify",
+    "slug": "listify",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/Listify Logo.png",
@@ -13,10 +13,9 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#72ddf7",
         "foregroundImage": "./assets/images/Listify Logo.png",
-        "backgroundImage": "./assets/images/Listify Logo.png",
-        "monochromeImage": "./assets/images/Listify Logo.png"
+        "backgroundImage": "./assets/images/Listify Logo.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
@@ -30,12 +29,12 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/favicon.ico",
+          "image": "./assets/images/Listify Logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#72ddf7",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#121212"
           }
         }
       ]
