@@ -1,98 +1,223 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { AddItemForm } from "@/components/AddItemForm";
+import { ShoppingItem } from "@/components/ShoppingItem";
+import { Button, Card } from "@/components/ui";
+import { Colors, Spacing, Typography } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import {
+  addItem,
+  deleteItem,
+  editItem,
+  setError,
+  setItems,
+  togglePurchased,
+} from "@/redux/shoppingListActions";
+import { RootState } from "@/redux/store";
+import { ShoppingItem as ShoppingItemType } from "@/types/shopping";
+import React, { useEffect, useState } from "react";
+import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const dispatch = useDispatch();
+  const { items, loading, error } = useSelector(
+    (state: RootState) => state.shoppingList,
+  );
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? "light"];
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingItem, setEditingItem] = useState<ShoppingItemType | null>(null);
+
+  useEffect(() => {
+    loadItems();
+  }, []);
+
+  useEffect(() => {
+    if (error) {
+      Alert.alert("Error", error);
+      dispatch(setError(null));
+    }
+  }, [error, dispatch]);
+
+  const loadItems = () => {
+    try {
+      const savedItems = localStorage.getItem("shoppingList");
+      if (savedItems) {
+        const parsedItems = JSON.parse(savedItems);
+        dispatch(setItems(parsedItems));
+      }
+    } catch (err) {
+      dispatch(setError("Failed to load shopping list"));
+    }
+  };
+
+  const saveItems = (itemsToSave: ShoppingItemType[]) => {
+    try {
+      localStorage.setItem("shoppingList", JSON.stringify(itemsToSave));
+    } catch (err) {
+      dispatch(setError("Failed to save shopping list"));
+    }
+  };
+
+  const handleAddItem = (name: string, quantity: number) => {
+    dispatch(addItem(name, quantity));
+    setShowAddForm(false);
+
+    const updatedItems = [
+      ...items,
+      {
+        id: Date.now().toString(),
+        name,
+        quantity,
+        purchased: false,
+        createdAt: new Date().toISOString(),
+      },
+    ];
+    saveItems(updatedItems);
+  };
+
+  const handleEditItem = (item: ShoppingItemType) => {
+    setEditingItem(item);
+    setShowAddForm(true);
+  };
+
+  const handleUpdateItem = (name: string, quantity: number) => {
+    if (editingItem) {
+      dispatch(editItem(editingItem.id, { name, quantity }));
+
+      const updatedItems = items.map((item) =>
+        item.id === editingItem.id ? { ...item, name, quantity } : item,
+      );
+      saveItems(updatedItems);
+
+      setEditingItem(null);
+      setShowAddForm(false);
+    }
+  };
+
+  const handleDeleteItem = (id: string) => {
+    Alert.alert("Delete Item", "Are you sure you want to delete this item?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          dispatch(deleteItem(id));
+          const updatedItems = items.filter((item) => item.id !== id);
+          saveItems(updatedItems);
+        },
+      },
+    ]);
+  };
+
+  const handleTogglePurchased = (id: string) => {
+    dispatch(togglePurchased(id));
+    const updatedItems = items.map((item) =>
+      item.id === id ? { ...item, purchased: !item.purchased } : item,
+    );
+    saveItems(updatedItems);
+  };
+
+  const renderItem = ({ item }: { item: ShoppingItemType }) => (
+    <ShoppingItem
+      item={item}
+      onTogglePurchased={handleTogglePurchased}
+      onEdit={handleEditItem}
+      onDelete={handleDeleteItem}
+    />
+  );
+
+  const purchasedCount = items.filter((item) => item.purchased).length;
+  const totalCount = items.length;
+
+  if (showAddForm) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: colors.text }]}>
+            {editingItem ? "Edit Item" : "Add New Item"}
+          </Text>
+        </View>
+        <AddItemForm
+          onAddItem={editingItem ? handleUpdateItem : handleAddItem}
+          onCancel={() => {
+            setShowAddForm(false);
+            setEditingItem(null);
+          }}
+          initialItem={editingItem}
+          submitText={editingItem ? "Update Item" : "Add Item"}
+        />
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: colors.text }]}>
+          My Shopping List
+        </Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+          {purchasedCount} of {totalCount} items purchased
+        </Text>
+      </View>
+
+      <Button
+        title="Add New Item"
+        onPress={() => setShowAddForm(true)}
+        variant="primary"
+        style={styles.addButton}
+      />
+
+      <FlatList
+        data={items}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        style={styles.list}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <Card style={styles.emptyCard}>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              Your shopping list is empty. Add some items to get started!
+            </Text>
+          </Card>
+        }
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  header: {
+    padding: Spacing.lg,
+    alignItems: "center",
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  title: {
+    fontSize: Typography.title.fontSize,
+    fontWeight: "bold",
+    marginBottom: Spacing.sm,
+  },
+  subtitle: {
+    fontSize: Typography.caption.fontSize,
+  },
+  addButton: {
+    margin: Spacing.md,
+  },
+  list: {
+    flex: 1,
+    paddingHorizontal: Spacing.md,
+  },
+  emptyCard: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: Spacing.xl,
+    marginTop: Spacing.xl,
+  },
+  emptyText: {
+    fontSize: Typography.body.fontSize,
+    textAlign: "center",
   },
 });

@@ -1,5 +1,7 @@
 <img src="https://socialify.git.ci/SineMag/Listify/image?language=1&owner=1&name=1&stargazers=1&theme=Light" alt="Listify" width="640" height="320" />
 
+<img src="https://socialify.git.ci/SineMag/Listify/image?language=1&owner=1&name=1&stargazers=1&theme=Light" alt="Listify" width="640" height="320" />
+
 # Listify: Your Smart Shopping List App 🛒
 
 Welcome to Listify, a smart shopping list application built with React Native and Expo. This app helps you manage your groceries and other shopping needs efficiently, powered by Redux for state management and Supabase for seamless data persistence.
@@ -11,6 +13,10 @@ Welcome to Listify, a smart shopping list application built with React Native an
 -   **Delete Items**: Remove items you no longer need.
 -   **Mark as Purchased**: Check off items as you buy them.
 -   **Persistent Data**: Your shopping list is saved and loaded automatically across app sessions using Supabase.
+
+## Live Demo
+
+Experience the Listify app live at: [https://listify-ps4d.onrender.com](https://listify-ps4d.onrender.com)
 
 ## Get Started
 

@@ -1,11 +1,11 @@
-// redux/store.ts
-import { createStore, combineReducers } from 'redux';
-import shoppingListReducer from './reducers';
+import { combineReducers, createStore } from "redux";
+import { shoppingListReducer } from "./shoppingListReducer";
 
 const rootReducer = combineReducers({
   shoppingList: shoppingListReducer,
 });
 
-const store = createStore(rootReducer);
+export const store = createStore(rootReducer);
 
-export default store;
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
