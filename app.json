@@ -20,6 +20,7 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
+    "assetBundlePatterns": ["**/*"],
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.ico"
