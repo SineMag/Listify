@@ -22,7 +22,7 @@ export const AddItemForm: React.FC<AddItemFormProps> = ({
 
   const [name, setName] = useState(initialItem?.name || "");
   const [quantity, setQuantity] = useState(
-    initialItem?.quantity?.toString() || "1",
+    initialItem?.quantity?.toString() || "",
   );
   const [errors, setErrors] = useState<{ name?: string; quantity?: string }>(
     {},

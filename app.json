@@ -14,8 +14,8 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#72ddf7",
-        "foregroundImage": "./assets/images/Listify Logo.png",
-        "backgroundImage": "./assets/images/Listify Logo.png"
+        "foregroundImage": "./assets/images/favicon.ico",
+        "backgroundImage": "./assets/images/favicon.ico"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
@@ -29,7 +29,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/Listify Logo.png",
+          "image": "./assets/images/favicon.ico",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#72ddf7",

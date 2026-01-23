@@ -132,3 +132,20 @@ export const togglePurchasedStatus = async (
   }
 };
 
+// Clear all shopping items
+export const clearAllShoppingItems = async (): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from("shopping_items")
+      .delete()
+      .neq("id", 0);
+
+    if (error) {
+      throw error;
+    }
+  } catch (error) {
+    console.error("Error clearing shopping items:", error);
+    throw new Error("Failed to clear shopping list");
+  }
+};
+

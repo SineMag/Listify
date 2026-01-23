@@ -1,4 +1,5 @@
 import { AddItemForm } from "@/components/AddItemForm";
+import { Confetti } from "@/components/Confetti";
 import { ShoppingItem } from "@/components/ShoppingItem";
 import { Toast } from "@/components/Toast";
 import { Button, Card } from "@/components/ui";
@@ -14,16 +15,18 @@ import {
   togglePurchased,
 } from "@/redux/shoppingListActions";
 import { RootState } from "@/redux/store";
-import {
-  addShoppingItem,
-  deleteShoppingItem,
-  fetchShoppingItems,
-  togglePurchasedStatus,
-  updateShoppingItem,
-} from "@/supabase/shoppingListService";
+import { shoppingListService } from "@/supabase/unifiedShoppingService";
 import { ShoppingItem as ShoppingItemType } from "@/types/shopping";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 
 export default function HomeScreen() {
@@ -33,9 +36,12 @@ export default function HomeScreen() {
   );
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
+  const insets = useSafeAreaInsets();
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingItem, setEditingItem] = useState<ShoppingItemType | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [previousPurchasedCount, setPreviousPurchasedCount] = useState(0);
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error" | "info";
@@ -53,7 +59,21 @@ export default function HomeScreen() {
     }
   }, [error, dispatch]);
 
-  const showToast = (message: string, type: "success" | "error" | "info" = "info") => {
+  // Monitor for all items purchased to trigger confetti
+  useEffect(() => {
+    const allPurchased = items.length > 0 && items.every((i) => i.purchased);
+
+    // Only trigger confetti once when all items become purchased
+    if (allPurchased && showConfetti === false) {
+      setShowConfetti(true);
+      showToast("🎉 Congratulations! All items purchased!", "success");
+    }
+  }, [items, showConfetti]);
+
+  const showToast = (
+    message: string,
+    type: "success" | "error" | "info" = "info",
+  ) => {
     setToast({ message, type, visible: true });
   };
 
@@ -64,8 +84,11 @@ export default function HomeScreen() {
   const loadItems = async () => {
     try {
       dispatch(setLoading(true));
-      const fetchedItems = await fetchShoppingItems();
+      const fetchedItems = await shoppingListService.fetchItems();
       dispatch(setItems(fetchedItems));
+      setPreviousPurchasedCount(
+        fetchedItems.filter((item) => item.purchased).length,
+      );
     } catch (err: any) {
       const errorMessage = err.message || "Failed to load shopping list";
       dispatch(setError(errorMessage));
@@ -78,7 +101,7 @@ export default function HomeScreen() {
   const handleAddItem = async (name: string, quantity: number) => {
     try {
       dispatch(setLoading(true));
-      const newItem = await addShoppingItem(name, quantity);
+      const newItem = await shoppingListService.addItem(name, quantity);
       dispatch(addItem(name, quantity));
       setShowAddForm(false);
       showToast("Item added successfully!", "success");
@@ -100,7 +123,10 @@ export default function HomeScreen() {
     if (editingItem) {
       try {
         dispatch(setLoading(true));
-        await updateShoppingItem(editingItem.id, { name, quantity });
+        await shoppingListService.updateItem(editingItem.id, {
+          name,
+          quantity,
+        });
         dispatch(editItem(editingItem.id, { name, quantity }));
         setEditingItem(null);
         setShowAddForm(false);
@@ -116,27 +142,80 @@ export default function HomeScreen() {
   };
 
   const handleDeleteItem = (id: string) => {
-    Alert.alert("Delete Item", "Are you sure you want to delete this item?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            dispatch(setLoading(true));
-            await deleteShoppingItem(id);
+    console.log("handleDeleteItem called with ID:", id);
+
+    // For web, we'll use the browser's confirm dialog
+    if (typeof window !== "undefined") {
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this item?",
+      );
+      if (!confirmDelete) {
+        console.log("Delete operation cancelled by user");
+        return;
+      }
+
+      (async () => {
+        try {
+          console.log("Starting delete operation for item ID:", id);
+          dispatch(setLoading(true));
+          await shoppingListService.deleteItem(id);
+          console.log("Item deleted from storage, updating UI...");
+          dispatch(deleteItem(id));
+          showToast("Item deleted successfully!", "success");
+        } catch (err: any) {
+          console.error("Error deleting item:", err);
+          // If we get here, both Supabase and localStorage failed
+          if (
+            err.message ===
+            "Failed to delete item from both Supabase and localStorage"
+          ) {
+            // Still update the UI to reflect the deletion if possible
             dispatch(deleteItem(id));
-            showToast("Item deleted successfully!", "success");
-          } catch (err: any) {
+            showToast("Item removed from list (offline mode)", "info");
+          } else {
             const errorMessage = err.message || "Failed to delete item";
             dispatch(setError(errorMessage));
             showToast(errorMessage, "error");
-          } finally {
-            dispatch(setLoading(false));
           }
+        } finally {
+          dispatch(setLoading(false));
+        }
+      })();
+    } else {
+      // Original mobile implementation
+      Alert.alert("Delete Item", "Are you sure you want to delete this item?", [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              console.log("Starting delete operation for item ID:", id);
+              dispatch(setLoading(true));
+              await shoppingListService.deleteItem(id);
+              console.log("Item deleted from storage, updating UI...");
+              dispatch(deleteItem(id));
+              showToast("Item deleted successfully!", "success");
+            } catch (err: any) {
+              console.error("Error deleting item:", err);
+              if (
+                err.message ===
+                "Failed to delete item from both Supabase and localStorage"
+              ) {
+                dispatch(deleteItem(id));
+                showToast("Item removed from list (offline mode)", "info");
+              } else {
+                const errorMessage = err.message || "Failed to delete item";
+                dispatch(setError(errorMessage));
+                showToast(errorMessage, "error");
+              }
+            } finally {
+              dispatch(setLoading(false));
+            }
+          },
         },
-      },
-    ]);
+      ]);
+    }
   };
 
   const handleTogglePurchased = async (id: string) => {
@@ -145,12 +224,25 @@ export default function HomeScreen() {
       if (!item) return;
 
       const newPurchasedStatus = !item.purchased;
-      await togglePurchasedStatus(id, newPurchasedStatus);
+      await shoppingListService.togglePurchased(id, newPurchasedStatus);
       dispatch(togglePurchased(id));
       showToast(
         newPurchasedStatus ? "Item marked as purchased!" : "Item unmarked!",
-        "success"
+        "success",
       );
+
+      // Check if all items are now purchased
+      const updatedItems = items.map((i) =>
+        i.id === id ? { ...i, purchased: newPurchasedStatus } : i,
+      );
+      const allPurchased =
+        updatedItems.length > 0 && updatedItems.every((i) => i.purchased);
+
+      // Show confetti when all items are purchased and it wasn't already all purchased
+      if (allPurchased && !items.every((i) => i.purchased)) {
+        setShowConfetti(true);
+        showToast("🎉 Congratulations! All items purchased!", "success");
+      }
     } catch (err: any) {
       const errorMessage = err.message || "Failed to update item status";
       dispatch(setError(errorMessage));
@@ -193,6 +285,10 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Confetti
+        visible={showConfetti}
+        onComplete={() => setShowConfetti(false)}
+      />
       <Toast
         message={toast.message}
         type={toast.type}
@@ -248,9 +344,11 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingBottom: 80, // Space for tab bar
   },
   header: {
     padding: Spacing.lg,
+    paddingTop: Spacing.lg + 20, // Extra top padding
     alignItems: "center",
   },
   title: {

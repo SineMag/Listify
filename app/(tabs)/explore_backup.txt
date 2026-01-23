@@ -1,0 +1,2 @@
+// This is a backup of the old explore screen
+// No longer needed since stats are now in settings

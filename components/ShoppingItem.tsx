@@ -41,7 +41,11 @@ export const ShoppingItem: React.FC<ShoppingItemProps> = ({
           onPress={() => onTogglePurchased(item.id)}
           accessibilityRole="checkbox"
           accessibilityState={{ checked: item.purchased }}
-          accessibilityLabel={item.purchased ? `${item.name} purchased` : `${item.name} not purchased`}
+          accessibilityLabel={
+            item.purchased
+              ? `${item.name} purchased`
+              : `${item.name} not purchased`
+          }
           accessibilityHint="Double tap to toggle purchased status"
         >
           <View
@@ -51,7 +55,10 @@ export const ShoppingItem: React.FC<ShoppingItemProps> = ({
           </View>
         </TouchableOpacity>
 
-        <View style={styles.itemInfo} accessibilityLabel={`${item.name}, quantity ${item.quantity}`}>
+        <View
+          style={styles.itemInfo}
+          accessibilityLabel={`${item.name}, quantity ${item.quantity}`}
+        >
           <Text style={[styles.itemName, getTextStyle()]}>{item.name}</Text>
           <Text style={[styles.itemQuantity, getTextStyle()]}>
             Quantity: {item.quantity}
@@ -70,7 +77,14 @@ export const ShoppingItem: React.FC<ShoppingItemProps> = ({
           />
           <Button
             title="Delete"
-            onPress={() => onDelete(item.id)}
+            onPress={() => {
+              console.log(
+                "Delete button pressed for item:",
+                item.id,
+                item.name,
+              );
+              onDelete(item.id);
+            }}
             variant="outline"
             size="small"
             style={styles.actionButton}
@@ -86,11 +100,13 @@ export const ShoppingItem: React.FC<ShoppingItemProps> = ({
 const styles = StyleSheet.create({
   itemContainer: {
     marginVertical: Spacing.sm,
+    overflow: "visible",
   },
   itemContent: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
+    padding: Spacing.sm,
   },
   checkboxContainer: {
     marginRight: Spacing.md,
@@ -124,10 +140,14 @@ const styles = StyleSheet.create({
     fontSize: Typography.caption.fontSize,
   },
   itemActions: {
-    flexDirection: "column",
+    flexDirection: "row",
     gap: Spacing.sm,
+    padding: Spacing.sm,
+    marginLeft: "auto",
   },
   actionButton: {
-    minWidth: 60,
+    minWidth: 80,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
 });

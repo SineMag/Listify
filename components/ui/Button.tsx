@@ -136,18 +136,18 @@ export const Button: React.FC<ButtonProps> = ({
     }
   };
 
+  const handlePress = () => {
+    if (!disabled && onPress) {
+      onPress();
+    }
+  };
+
   return (
     <TouchableOpacity
-      style={[
-        styles.button,
-        getButtonStyle(),
-        getSizeStyle(),
-        disabled && styles.disabled,
-        style,
-      ]}
-      onPress={onPress}
+      style={[styles.button, getButtonStyle(), getSizeStyle(), style]}
+      onPress={handlePress}
       disabled={disabled}
-      activeOpacity={0.7}
+      activeOpacity={0.8}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel || title}
       accessibilityHint={accessibilityHint}

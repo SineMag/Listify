@@ -14,6 +14,13 @@ export const Colors = {
     success: "#51cf66",
     warning: "#ffd43b",
     tint: "#72ddf7",
+    // Enhanced dark mode colors
+    darkBackground: "#1a1a1a",
+    darkCard: "#2d2d2d",
+    darkBorder: "#404040",
+    darkText: "#ffffff",
+    darkTextSecondary: "#b0b0b0",
+    darkSurface: "#242424",
   },
   dark: {
     primary: "#72ddf7",
@@ -30,6 +37,18 @@ export const Colors = {
     success: "#51cf66",
     warning: "#ffd43b",
     tint: "#72ddf7",
+    // Enhanced dark mode colors with better blending
+    darkBackground: "#0f0f0f",
+    darkCard: "#1a1a1a",
+    darkBorder: "#2a2a2a",
+    darkText: "#ffffff",
+    darkTextSecondary: "#a0a0a0",
+    darkSurface: "#151515",
+    // Gradient colors for dark mode
+    gradientStart: "#2d2d2d",
+    gradientEnd: "#1a1a1a",
+    overlay: "rgba(0, 0, 0, 0.3)",
+    shadow: "rgba(0, 0, 0, 0.5)",
   },
 };
 
@@ -98,5 +117,35 @@ export const Shadow = {
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 8,
+  },
+};
+
+// Responsive breakpoints
+export const Breakpoints = {
+  small: 320, // iPhone SE
+  medium: 375, // iPhone 12/13
+  large: 414, // iPhone 12/13 Pro Max
+  tablet: 768, // iPad
+  desktop: 1024, // Desktop
+};
+
+// Responsive spacing
+export const ResponsiveSpacing = {
+  small: {
+    xs: 2,
+    sm: 4,
+    md: 8,
+    lg: 12,
+    xl: 16,
+    xxl: 24,
+  },
+  medium: Spacing, // Default
+  large: {
+    xs: 6,
+    sm: 12,
+    md: 20,
+    lg: 28,
+    xl: 36,
+    xxl: 56,
   },
 };
