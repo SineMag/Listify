@@ -40,7 +40,9 @@ Navigate to the project directory and install the necessary Node.js dependencies
 
 ```bash
 npm install
-# or
+```
+## OR
+```bash
 yarn install
 ```
 
