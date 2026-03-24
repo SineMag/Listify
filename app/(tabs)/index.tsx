@@ -261,6 +261,29 @@ export default function HomeScreen() {
     />
   );
 
+  // Filter and sort items
+  const getFilteredAndSortedItems = () => {
+    let filtered = items.filter((item) =>
+      item.name.toLowerCase().includes(searchText.toLowerCase()),
+    );
+
+    // Sort items
+    if (sortBy === "name") {
+      filtered.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === "quantity") {
+      filtered.sort((a, b) => b.quantity - a.quantity);
+    } else if (sortBy === "date") {
+      filtered.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+    }
+
+    return filtered;
+  };
+
+  const displayedItems = getFilteredAndSortedItems();
+
   const purchasedCount = items.filter((item) => item.purchased).length;
   const totalCount = items.length;
 
@@ -316,6 +339,40 @@ export default function HomeScreen() {
         accessibilityHint="Opens a form to add a new item to your shopping list"
       />
 
+      {/* Search Input */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={[
+            styles.searchInput,
+            {
+              backgroundColor: colors.background,
+              color: colors.text,
+              borderColor: colors.border,
+            },
+          ]}
+          placeholder="Search items..."
+          placeholderTextColor={colors.textSecondary}
+          value={searchText}
+          onChangeText={setSearchText}
+        />
+      </View>
+
+      {/* Sort Options */}
+      <View style={styles.sortContainer}>
+        <Text style={[styles.sortLabel, { color: colors.text }]}>Sort by:</Text>
+        <View style={styles.sortButtons}>
+          {(["date", "name", "quantity"] as const).map((option) => (
+            <Button
+              key={option}
+              title={option.charAt(0).toUpperCase() + option.slice(1)}
+              variant={sortBy === option ? "primary" : "secondary"}
+              onPress={() => setSortBy(option)}
+              style={styles.sortButton}
+            />
+          ))}
+        </View>
+      </View>
+
       {loading && items.length === 0 ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -325,7 +382,7 @@ export default function HomeScreen() {
         </View>
       ) : (
         <FlatList
-          data={items}
+          data={displayedItems}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
           style={styles.list}
@@ -333,7 +390,9 @@ export default function HomeScreen() {
           ListEmptyComponent={
             <Card style={styles.emptyCard}>
               <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                Your shopping list is empty. Add some items to get started!
+                {searchText
+                  ? "No items match your search"
+                  : "Your shopping list is empty. Add some items to get started!"}
               </Text>
             </Card>
           }
@@ -363,6 +422,33 @@ const styles = StyleSheet.create({
   },
   addButton: {
     margin: Spacing.md,
+  },
+  searchContainer: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  searchInput: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    fontSize: Typography.body.fontSize,
+  },
+  sortContainer: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  sortLabel: {
+    fontSize: Typography.caption.fontSize,
+    fontWeight: "600",
+    marginBottom: Spacing.sm,
+  },
+  sortButtons: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+  },
+  sortButton: {
+    flex: 1,
   },
   list: {
     flex: 1,
