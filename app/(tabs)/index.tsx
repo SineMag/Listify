@@ -24,6 +24,7 @@ import {
   FlatList,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -42,6 +43,8 @@ export default function HomeScreen() {
   const [editingItem, setEditingItem] = useState<ShoppingItemType | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [previousPurchasedCount, setPreviousPurchasedCount] = useState(0);
+  const [searchText, setSearchText] = useState("");
+  const [sortBy, setSortBy] = useState<"name" | "quantity" | "date">("date");
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error" | "info";

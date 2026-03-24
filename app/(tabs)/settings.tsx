@@ -9,6 +9,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
   Alert,
+  Clipboard,
   Image,
   Linking,
   ScrollView,
@@ -121,6 +122,7 @@ export default function SettingsScreen() {
           style: "destructive",
           onPress: async () => {
             try {
+              await shoppingListService.clearPurchased();
               const unpurchasedItems = items.filter((item) => !item.purchased);
               dispatch(setItems(unpurchasedItems));
             } catch (err: any) {
@@ -150,8 +152,8 @@ export default function SettingsScreen() {
           {
             text: "Copy to Clipboard",
             onPress: () => {
-              // In a real app, you would use Clipboard.setString(listText)
-              Alert.alert("Copied!", "Data copied to clipboard");
+              Clipboard.setString(listText);
+              Alert.alert("Success!", "Data copied to clipboard");
             },
           },
           { text: "OK", style: "cancel" },
@@ -161,36 +163,6 @@ export default function SettingsScreen() {
       const errorMessage = err.message || "Failed to export data";
       dispatch(setError(errorMessage));
     }
-  };
-
-  const handleRateApp = () => {
-    Alert.alert(
-      "Rate App",
-      "Thank you for using Listify! Please rate us on the app store.",
-    );
-  };
-
-  const handleShareApp = () => {
-    Alert.alert("Share App", "Share Listify with your friends and family!");
-  };
-
-  const handleContactSupport = () => {
-    Alert.alert("Contact Support", "Email us at support@listify.app for help.");
-  };
-
-  const handleAbout = () => {
-    Alert.alert(
-      "About Listify",
-      "Listify v1.0.0\n\nYour smart shopping list companion.\n\nMade with ❤️ for smart shoppers.",
-    );
-  };
-
-  const handlePrivacyPolicy = () => {
-    Linking.openURL("https://listify.app/privacy");
-  };
-
-  const handleTermsOfService = () => {
-    Linking.openURL("https://listify.app/terms");
   };
 
   const handleFontSize = () => {
@@ -218,21 +190,6 @@ export default function SettingsScreen() {
       },
       { text: "Cancel", style: "cancel" },
     ]);
-  };
-
-  const handleHelpFAQ = () => {
-    Alert.alert(
-      "Help & FAQ",
-      "Frequently Asked Questions:\n\n" +
-        "Q: How do I add items?\n" +
-        "A: Tap the 'Add New Item' button on the main screen.\n\n" +
-        "Q: How do I mark items as purchased?\n" +
-        "A: Tap the checkbox next to each item.\n\n" +
-        "Q: How do I delete items?\n" +
-        "A: Swipe left on an item or use the delete button.\n\n" +
-        "Q: Is my data backed up?\n" +
-        "A: Yes, your data is automatically saved locally.",
-    );
   };
 
   return (
@@ -339,160 +296,6 @@ export default function SettingsScreen() {
             disabled={items.length === 0}
           />
         </View>
-      </Card>
-
-      {/* Appearance Settings */}
-      <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          Appearance
-        </Text>
-        <SettingItem
-          title="Dark Mode"
-          description="Use dark theme across the app"
-          icon="moon-outline"
-          onPress={toggleDarkMode}
-          rightComponent={
-            <Switch
-              value={settings.darkMode}
-              onValueChange={toggleDarkMode}
-              trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={colors.background}
-            />
-          }
-        />
-        <SettingItem
-          title="Font Size"
-          description={`Current: ${settings.fontSize}`}
-          icon="text-outline"
-          onPress={handleFontSize}
-        />
-      </Card>
-
-      {/* App Preferences */}
-      <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          App Preferences
-        </Text>
-        <SettingItem
-          title="Notifications"
-          description="Receive reminders about your shopping list"
-          icon="notifications-outline"
-          onPress={() =>
-            updateSettings({ notifications: !settings.notifications })
-          }
-          rightComponent={
-            <Switch
-              value={settings.notifications}
-              onValueChange={(value) =>
-                updateSettings({ notifications: value })
-              }
-              trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={colors.background}
-            />
-          }
-        />
-        <SettingItem
-          title="Sound Effects"
-          description="Play sounds for actions and completion"
-          icon="volume-high-outline"
-          onPress={() =>
-            updateSettings({ soundEnabled: !settings.soundEnabled })
-          }
-          rightComponent={
-            <Switch
-              value={settings.soundEnabled}
-              onValueChange={(value) => updateSettings({ soundEnabled: value })}
-              trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={colors.background}
-            />
-          }
-        />
-        <SettingItem
-          title="Haptic Feedback"
-          description="Vibrate on interactions"
-          icon="phone-portrait-outline"
-          onPress={() =>
-            updateSettings({ hapticFeedback: !settings.hapticFeedback })
-          }
-          rightComponent={
-            <Switch
-              value={settings.hapticFeedback}
-              onValueChange={(value) =>
-                updateSettings({ hapticFeedback: value })
-              }
-              trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={colors.background}
-            />
-          }
-        />
-        <SettingItem
-          title="Auto Backup"
-          description="Automatically backup your shopping list"
-          icon="cloud-upload-outline"
-          onPress={() => updateSettings({ autoBackup: !settings.autoBackup })}
-          rightComponent={
-            <Switch
-              value={settings.autoBackup}
-              onValueChange={(value) => updateSettings({ autoBackup: value })}
-              trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={colors.background}
-            />
-          }
-        />
-      </Card>
-
-      {/* Support */}
-      <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          Support
-        </Text>
-        <SettingItem
-          title="Rate App"
-          description="Rate Listify on the app store"
-          icon="star-outline"
-          onPress={handleRateApp}
-        />
-        <SettingItem
-          title="Share App"
-          description="Share with friends and family"
-          icon="share-social-outline"
-          onPress={handleShareApp}
-        />
-        <SettingItem
-          title="Contact Support"
-          description="Get help with the app"
-          icon="mail-outline"
-          onPress={handleContactSupport}
-        />
-        <SettingItem
-          title="Help & FAQ"
-          description="Frequently asked questions"
-          icon="help-circle-outline"
-          onPress={handleHelpFAQ}
-        />
-      </Card>
-
-      {/* Legal */}
-      <Card style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Legal</Text>
-        <SettingItem
-          title="Privacy Policy"
-          description="How we handle your data"
-          icon="lock-closed-outline"
-          onPress={handlePrivacyPolicy}
-        />
-        <SettingItem
-          title="Terms of Service"
-          description="Terms and conditions"
-          icon="document-text-outline"
-          onPress={handleTermsOfService}
-        />
-        <SettingItem
-          title="About"
-          description="App version and information"
-          icon="information-circle-outline"
-          onPress={handleAbout}
-        />
       </Card>
 
       <View style={styles.footer}>

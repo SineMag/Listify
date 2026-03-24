@@ -22,7 +22,7 @@ export const localStorageService = {
   // Add a new shopping item
   addItem: async (name: string, quantity: number): Promise<ShoppingItem> => {
     try {
-      const items = await this.fetchItems();
+      const items = await localStorageService.fetchItems();
       const newItem: ShoppingItem = {
         id: Date.now().toString(),
         name,
@@ -46,7 +46,7 @@ export const localStorageService = {
     updates: { name?: string; quantity?: number },
   ): Promise<void> => {
     try {
-      const items = await this.fetchItems();
+      const items = await localStorageService.fetchItems();
       const updatedItems = items.map((item) =>
         item.id === id ? { ...item, ...updates } : item,
       );
@@ -60,7 +60,7 @@ export const localStorageService = {
   // Delete a shopping item
   deleteItem: async (id: string): Promise<void> => {
     try {
-      const items = await this.fetchItems();
+      const items = await localStorageService.fetchItems();
       const updatedItems = items.filter((item) => item.id !== id);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedItems));
     } catch (error) {
@@ -72,7 +72,7 @@ export const localStorageService = {
   // Toggle purchased status
   togglePurchased: async (id: string, purchased: boolean): Promise<void> => {
     try {
-      const items = await this.fetchItems();
+      const items = await localStorageService.fetchItems();
       const updatedItems = items.map((item) =>
         item.id === id ? { ...item, purchased } : item,
       );
@@ -96,7 +96,7 @@ export const localStorageService = {
   // Clear purchased items only
   clearPurchased: async (): Promise<void> => {
     try {
-      const items = await this.fetchItems();
+      const items = await localStorageService.fetchItems();
       const unpurchasedItems = items.filter((item) => !item.purchased);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(unpurchasedItems));
     } catch (error) {
