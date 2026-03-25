@@ -35,7 +35,7 @@ export const AddItemForm: React.FC<AddItemFormProps> = ({
       newErrors.name = "Item name is required";
     }
 
-    const quantityNum = parseInt(quantity);
+    const quantityNum = parseInt(quantity, 10);
     if (isNaN(quantityNum) || quantityNum < 1) {
       newErrors.quantity = "Quantity must be a positive number";
     }
@@ -46,7 +46,7 @@ export const AddItemForm: React.FC<AddItemFormProps> = ({
 
   const handleSubmit = () => {
     if (validateForm()) {
-      const quantityNum = parseInt(quantity);
+      const quantityNum = parseInt(quantity, 10);
       onAddItem(name.trim(), quantityNum);
       setName("");
       setQuantity("1");

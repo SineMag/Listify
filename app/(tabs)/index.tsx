@@ -1,5 +1,6 @@
 import { AddItemForm } from "@/components/AddItemForm";
 import { Confetti } from "@/components/Confetti";
+import { ConfirmationModal } from "@/components/ConfirmationModal";
 import { ShoppingItem } from "@/components/ShoppingItem";
 import { Toast } from "@/components/Toast";
 import { Button, Card } from "@/components/ui";
@@ -45,6 +46,7 @@ export default function HomeScreen() {
   const [previousPurchasedCount, setPreviousPurchasedCount] = useState(0);
   const [searchText, setSearchText] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "quantity" | "date">("date");
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error" | "info";
@@ -145,79 +147,33 @@ export default function HomeScreen() {
   };
 
   const handleDeleteItem = (id: string) => {
-    console.log("handleDeleteItem called with ID:", id);
+    setItemToDelete(id);
+  };
 
-    // For web, we'll use the browser's confirm dialog
-    if (typeof window !== "undefined") {
-      const confirmDelete = window.confirm(
-        "Are you sure you want to delete this item?",
-      );
-      if (!confirmDelete) {
-        console.log("Delete operation cancelled by user");
-        return;
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      dispatch(setLoading(true));
+      await shoppingListService.deleteItem(itemToDelete);
+      dispatch(deleteItem(itemToDelete));
+      showToast("Item deleted successfully!", "success");
+    } catch (err: any) {
+      console.error("Error deleting item:", err);
+      if (
+        err.message ===
+        "Failed to delete item from both Supabase and localStorage"
+      ) {
+        dispatch(deleteItem(itemToDelete));
+        showToast("Item removed from list (offline mode)", "info");
+      } else {
+        const errorMessage = err.message || "Failed to delete item";
+        dispatch(setError(errorMessage));
+        showToast(errorMessage, "error");
       }
-
-      (async () => {
-        try {
-          console.log("Starting delete operation for item ID:", id);
-          dispatch(setLoading(true));
-          await shoppingListService.deleteItem(id);
-          console.log("Item deleted from storage, updating UI...");
-          dispatch(deleteItem(id));
-          showToast("Item deleted successfully!", "success");
-        } catch (err: any) {
-          console.error("Error deleting item:", err);
-          // If we get here, both Supabase and localStorage failed
-          if (
-            err.message ===
-            "Failed to delete item from both Supabase and localStorage"
-          ) {
-            // Still update the UI to reflect the deletion if possible
-            dispatch(deleteItem(id));
-            showToast("Item removed from list (offline mode)", "info");
-          } else {
-            const errorMessage = err.message || "Failed to delete item";
-            dispatch(setError(errorMessage));
-            showToast(errorMessage, "error");
-          }
-        } finally {
-          dispatch(setLoading(false));
-        }
-      })();
-    } else {
-      // Original mobile implementation
-      Alert.alert("Delete Item", "Are you sure you want to delete this item?", [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              console.log("Starting delete operation for item ID:", id);
-              dispatch(setLoading(true));
-              await shoppingListService.deleteItem(id);
-              console.log("Item deleted from storage, updating UI...");
-              dispatch(deleteItem(id));
-              showToast("Item deleted successfully!", "success");
-            } catch (err: any) {
-              console.error("Error deleting item:", err);
-              if (
-                err.message ===
-                "Failed to delete item from both Supabase and localStorage"
-              ) {
-                dispatch(deleteItem(id));
-                showToast("Item removed from list (offline mode)", "info");
-              } else {
-                const errorMessage = err.message || "Failed to delete item";
-                dispatch(setError(errorMessage));
-                showToast(errorMessage, "error");
-              }
-            } finally {
-              dispatch(setLoading(false));
-            }
-          },
-        },
-      ]);
+    } finally {
+      dispatch(setLoading(false));
+      setItemToDelete(null);
     }
   };
 
@@ -320,6 +276,15 @@ export default function HomeScreen() {
         type={toast.type}
         visible={toast.visible}
         onHide={hideToast}
+      />
+      <ConfirmationModal
+        visible={!!itemToDelete}
+        title="Delete Item"
+        message="Are you sure you want to delete this item?"
+        onConfirm={confirmDelete}
+        onCancel={() => setItemToDelete(null)}
+        confirmText="Delete"
+        cancelText="Cancel"
       />
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>

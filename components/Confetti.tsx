@@ -65,7 +65,7 @@ export const Confetti: React.FC<ConfettiProps> = ({ visible, onComplete }) => {
         });
         const rotate = anim.interpolate({
           inputRange: [0, 1],
-          outputRange: [0, particle.rotation + particle.rotationSpeed * 20],
+          outputRange: [`0deg`, `${particle.rotation + particle.rotationSpeed * 20}deg`],
           extrapolate: "clamp",
         });
         const opacity = anim.interpolate({
@@ -92,7 +92,7 @@ export const Confetti: React.FC<ConfettiProps> = ({ visible, onComplete }) => {
                 transform: [
                   { translateX },
                   { translateY },
-                  { rotate: `${rotate}deg` },
+                  { rotate },
                   { scale },
                 ],
                 opacity,
