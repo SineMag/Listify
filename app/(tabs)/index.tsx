@@ -15,7 +15,7 @@ import {
   togglePurchased,
 } from "@/redux/shoppingListActions";
 import { RootState } from "@/redux/store";
-import { shoppingListService } from "@/supabase/unifiedShoppingService";
+import { shoppingListService } from "@/services/shoppingListService";
 import { ShoppingItem as ShoppingItemType } from "@/types/shopping";
 import React, { useEffect, useState } from "react";
 import {

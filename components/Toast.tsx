@@ -1,4 +1,4 @@
-import { Colors, Spacing, Typography } from "@/constants/theme";
+import { Colors, Shadow, Spacing, Typography } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import React, { useEffect } from "react";
 import {
@@ -96,9 +96,9 @@ export const Toast: React.FC<ToastProps> = ({
         {
           opacity: fadeAnim,
           transform: [{ translateY: slideAnim }],
+          pointerEvents: "box-none" as const,
         },
       ]}
-      pointerEvents="box-none"
     >
       <TouchableOpacity
         style={[
@@ -133,11 +133,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     minWidth: 200,
     maxWidth: "90%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    ...Shadow.md,
   },
   message: {
     color: "white",

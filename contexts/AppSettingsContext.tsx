@@ -1,4 +1,4 @@
-import { storageAdapter } from "@/supabase/storageAdapter";
+import { storageAdapter } from "@/services/storageAdapter";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 interface AppSettings {

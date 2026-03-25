@@ -1,4 +1,3 @@
-import { useRouter } from "expo-router";
 import Head from "expo-router/head";
 import { Platform } from "react-native";
 
@@ -16,9 +15,7 @@ import { Provider } from "react-redux";
 import { AppSettingsProvider } from "@/contexts/AppSettingsContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import * as SplashScreen from "expo-splash-screen";
-import React from "react";
-
-const router = useRouter();
+import React, { useEffect } from "react";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -29,6 +26,10 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
 
   return (
     <Provider store={store}>

@@ -96,28 +96,32 @@ export const Typography = {
   },
 };
 
+import { Platform, ViewStyle } from "react-native";
+
+const createShadow = (
+  offsetY: number,
+  opacity: number,
+  radius: number,
+  elevation: number,
+): ViewStyle => {
+  if (Platform.OS === "web") {
+    return {
+      boxShadow: `0px ${offsetY}px ${radius}px rgba(0, 0, 0, ${opacity})`,
+    } as ViewStyle;
+  }
+  return {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: offsetY },
+    shadowOpacity: opacity,
+    shadowRadius: radius,
+    elevation,
+  };
+};
+
 export const Shadow = {
-  sm: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  md: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  lg: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
+  sm: createShadow(1, 0.1, 2, 2),
+  md: createShadow(2, 0.15, 4, 4),
+  lg: createShadow(4, 0.2, 8, 8),
 };
 
 // Responsive breakpoints

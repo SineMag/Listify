@@ -4,7 +4,7 @@ import { useAppSettings } from "@/contexts/AppSettingsContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { setError, setItems } from "@/redux/shoppingListActions";
 import { RootState } from "@/redux/store";
-import { shoppingListService } from "@/supabase/unifiedShoppingService";
+import { shoppingListService } from "@/services/shoppingListService";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {

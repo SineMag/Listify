@@ -1,4 +1,4 @@
-import { BorderRadius, Colors, Spacing, Typography } from "@/constants/theme";
+import { BorderRadius, Colors, Shadow, Spacing, Typography } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import React from "react";
 import {
@@ -40,11 +40,7 @@ export const Button: React.FC<ButtonProps> = ({
       borderRadius: BorderRadius.md,
       alignItems: "center",
       justifyContent: "center",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.1,
-      shadowRadius: 2,
-      elevation: 2,
+      ...Shadow.sm,
     };
 
     switch (variant) {
