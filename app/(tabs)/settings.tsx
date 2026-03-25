@@ -1,4 +1,5 @@
 import { Button, Card } from "@/components/ui";
+import { ConfirmationModal } from "@/components/ConfirmationModal";
 import { BorderRadius, Colors, Spacing, Typography } from "@/constants/theme";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -6,7 +7,7 @@ import { setError, setItems } from "@/redux/shoppingListActions";
 import { RootState } from "@/redux/store";
 import { shoppingListService } from "@/services/shoppingListService";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useState } from "react";
 import {
   Alert,
   Clipboard,
@@ -86,28 +87,22 @@ export default function SettingsScreen() {
   const colors = Colors[colorScheme ?? "light"];
   const insets = useSafeAreaInsets();
   const { settings, updateSettings, toggleDarkMode } = useAppSettings();
+  const [showClearAllModal, setShowClearAllModal] = useState(false);
 
   const handleClearAll = () => {
-    Alert.alert(
-      "Clear All Items",
-      "Are you sure you want to clear all items? This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Clear",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await shoppingListService.clearAll();
-              dispatch(setItems([]));
-            } catch (err: any) {
-              const errorMessage = err.message || "Failed to clear all items";
-              dispatch(setError(errorMessage));
-            }
-          },
-        },
-      ],
-    );
+    setShowClearAllModal(true);
+  };
+
+  const confirmClearAll = async () => {
+    try {
+      await shoppingListService.clearAll();
+      dispatch(setItems([]));
+    } catch (err: any) {
+      const errorMessage = err.message || "Failed to clear all items";
+      dispatch(setError(errorMessage));
+    } finally {
+      setShowClearAllModal(false);
+    }
   };
 
   const handleClearPurchased = () => {
@@ -192,6 +187,16 @@ export default function SettingsScreen() {
   };
 
   return (
+    <>
+    <ConfirmationModal
+      visible={showClearAllModal}
+      title="Clear All Items"
+      message="Are you sure you want to clear all items? This action cannot be undone."
+      confirmText="Clear All"
+      cancelText="Cancel"
+      onConfirm={confirmClearAll}
+      onCancel={() => setShowClearAllModal(false)}
+    />
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={{
@@ -328,6 +333,7 @@ export default function SettingsScreen() {
         </Text>
       </View>
     </ScrollView>
+    </>
   );
 }
 
