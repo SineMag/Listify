@@ -1,21 +1,22 @@
 import { ShoppingItem } from "@/types/shopping";
+import { storageAdapter } from "./storageAdapter";
 
-// LocalStorage fallback service for when Supabase is not available
+// Cross-platform storage service that works on both native and web
 const STORAGE_KEY = "shoppingList";
 
 export const localStorageService = {
   // Fetch all shopping items
   fetchItems: async (): Promise<ShoppingItem[]> => {
     try {
-      const savedItems = localStorage.getItem(STORAGE_KEY);
+      const savedItems = await storageAdapter.getItem(STORAGE_KEY);
       if (savedItems) {
         const parsedItems = JSON.parse(savedItems);
         return parsedItems;
       }
       return [];
     } catch (error) {
-      console.error("Error fetching items from localStorage:", error);
-      throw new Error("Failed to load shopping list");
+      console.error("Error fetching items from storage:", error);
+      return [];
     }
   },
 
@@ -32,10 +33,10 @@ export const localStorageService = {
       };
 
       const updatedItems = [...items, newItem];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedItems));
+      await storageAdapter.setItem(STORAGE_KEY, JSON.stringify(updatedItems));
       return newItem;
     } catch (error) {
-      console.error("Error adding item to localStorage:", error);
+      console.error("Error adding item to storage:", error);
       throw new Error("Failed to add item");
     }
   },
@@ -50,9 +51,9 @@ export const localStorageService = {
       const updatedItems = items.map((item) =>
         item.id === id ? { ...item, ...updates } : item,
       );
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedItems));
+      await storageAdapter.setItem(STORAGE_KEY, JSON.stringify(updatedItems));
     } catch (error) {
-      console.error("Error updating item in localStorage:", error);
+      console.error("Error updating item in storage:", error);
       throw new Error("Failed to update item");
     }
   },
@@ -62,9 +63,9 @@ export const localStorageService = {
     try {
       const items = await localStorageService.fetchItems();
       const updatedItems = items.filter((item) => item.id !== id);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedItems));
+      await storageAdapter.setItem(STORAGE_KEY, JSON.stringify(updatedItems));
     } catch (error) {
-      console.error("Error deleting item from localStorage:", error);
+      console.error("Error deleting item from storage:", error);
       throw new Error("Failed to delete item");
     }
   },
@@ -76,9 +77,9 @@ export const localStorageService = {
       const updatedItems = items.map((item) =>
         item.id === id ? { ...item, purchased } : item,
       );
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedItems));
+      await storageAdapter.setItem(STORAGE_KEY, JSON.stringify(updatedItems));
     } catch (error) {
-      console.error("Error toggling purchased status in localStorage:", error);
+      console.error("Error toggling purchased status in storage:", error);
       throw new Error("Failed to update item status");
     }
   },
@@ -86,9 +87,9 @@ export const localStorageService = {
   // Clear all items
   clearAll: async (): Promise<void> => {
     try {
-      localStorage.removeItem(STORAGE_KEY);
+      await storageAdapter.removeItem(STORAGE_KEY);
     } catch (error) {
-      console.error("Error clearing localStorage:", error);
+      console.error("Error clearing storage:", error);
       throw new Error("Failed to clear shopping list");
     }
   },
@@ -98,9 +99,12 @@ export const localStorageService = {
     try {
       const items = await localStorageService.fetchItems();
       const unpurchasedItems = items.filter((item) => !item.purchased);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(unpurchasedItems));
+      await storageAdapter.setItem(
+        STORAGE_KEY,
+        JSON.stringify(unpurchasedItems),
+      );
     } catch (error) {
-      console.error("Error clearing purchased items from localStorage:", error);
+      console.error("Error clearing purchased items from storage:", error);
       throw new Error("Failed to clear purchased items");
     }
   },

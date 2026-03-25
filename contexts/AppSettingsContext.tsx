@@ -1,3 +1,4 @@
+import { storageAdapter } from "@/supabase/storageAdapter";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 interface AppSettings {
@@ -56,15 +57,9 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
     saveSettings(settings);
   }, [settings]);
 
-  // Apply dark mode when it changes
-  useEffect(() => {
-    applyDarkMode(settings.darkMode);
-  }, [settings.darkMode]);
-
   const loadSettings = async () => {
     try {
-      // In a real app, you'd use AsyncStorage or SecureStore
-      const savedSettings = localStorage.getItem("appSettings");
+      const savedSettings = await storageAdapter.getItem("appSettings");
       if (savedSettings) {
         const parsed = JSON.parse(savedSettings);
         setSettings((prev) => ({ ...prev, ...parsed }));
@@ -76,22 +71,12 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const saveSettings = async (settingsToSave: AppSettings) => {
     try {
-      localStorage.setItem("appSettings", JSON.stringify(settingsToSave));
+      await storageAdapter.setItem(
+        "appSettings",
+        JSON.stringify(settingsToSave),
+      );
     } catch (error) {
       console.log("Failed to save settings:", error);
-    }
-  };
-
-  const applyDarkMode = (isDark: boolean) => {
-    // Apply dark mode to the app
-    if (isDark) {
-      document.body.classList.add("dark-mode");
-      document.body.style.backgroundColor = "#121212";
-      document.body.style.color = "#ffffff";
-    } else {
-      document.body.classList.remove("dark-mode");
-      document.body.style.backgroundColor = "#ffffff";
-      document.body.style.color = "#000000";
     }
   };
 
